@@ -2,6 +2,8 @@ package macro;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -10,15 +12,28 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 
 public class ServerFrame{
 	private static String ip_num;
 	private static String pt_num;
 	private boolean flag_s=false;
 	private boolean flag_m = false;
+	
+	public final static int SERVER = 1;
+	public final static int CLIENT = 2;
+	public final static int MOBILE = 3;
+	public final static int ERROR = 4;
 	String text="";
+	TextArea ta = new TextArea("",18,54,TextArea.SCROLLBARS_VERTICAL_ONLY);
+	TextArea ta_s = new TextArea("",10,20,TextArea.SCROLLBARS_VERTICAL_ONLY);
 	public ServerFrame() {
 		this("0,0,0,0","0000");
 	}
@@ -44,7 +59,32 @@ public class ServerFrame{
 	public void setText(String str) {
 		this.text = str;
 	}
-	
+	public void printLog(String str,int hostcase) {
+		String host="";
+		switch(hostcase) {
+		case SERVER:
+			host="[Server]";
+			break;
+		case CLIENT:
+			host="[Client]";
+			break;
+		case MOBILE:
+			host="[Mobile]";
+			break;
+		case ERROR:
+			host="[Error]";
+			break;
+		}
+		SimpleDateFormat format = new SimpleDateFormat("[hh:mm]");
+		String time = format.format(new Date());
+		String memo;
+		memo = ta_s.getText();
+		
+		if(memo.equals(""))
+		{ta_s.setText(host+time+str);}
+		else
+			ta_s.setText(memo+"\n"+host+time+str);
+	}
 
 	public void Create() {
 		
@@ -74,19 +114,19 @@ public class ServerFrame{
 		JButton btn_run = new JButton("실행");
 		JButton btn_save = new JButton("저장");
 		JButton btn_find = new JButton("찾기");
-		JButton btn_xy = new JButton("좌표구하기");
+		JButton btn_xy = new JButton("좌표");
 		
 		Color w = new Color(255,255,255);
 		Color r = new Color(255,0,0);
 		Color g = new Color(0,255,0);
 		
-		TextArea ta = new TextArea("",18,54,TextArea.SCROLLBARS_VERTICAL_ONLY);
+		
 		
 		JRadioButton rb_one = new JRadioButton("한번");
 		JRadioButton rb_roop = new JRadioButton("계속");
 		JRadioButton rb_num = new JRadioButton("횟수");
 		
-		TextField tf = new TextField();
+		TextField tf_radio = new TextField();
 		
 		Font fnt_btn = new Font("고딕",Font.ITALIC,11);
 		//패널  설정
@@ -111,12 +151,16 @@ public class ServerFrame{
 		ta.setPreferredSize(new Dimension(400,300));
 		ta.setForeground(new Color(0,0,0));
 		ta.setText(text);
+		
+		//ta_s.setPreferredSize(new Dimension(200,100));
+	//	ta_s.setForeground(new Color(0,0,0));
+	//	ta_s.setText(text);
 	//	ta.set
 		//텍스트 필드 설정
-		tf.setForeground(new Color(0,0,0));
-		tf.setBackground(w);
-		tf.setColumns(8);
-		tf.setPreferredSize(new Dimension(20,20));
+		tf_radio.setForeground(new Color(0,0,0));
+		tf_radio.setBackground(w);
+		tf_radio.setColumns(8);
+		tf_radio.setPreferredSize(new Dimension(20,20));
 		//라벨 설정
 		la_Ip = new JLabel("아이피");
 		la_Pt = new JLabel("포트번호");
@@ -147,7 +191,8 @@ public class ServerFrame{
 		btn_exit.setFont(fnt_btn);
 		btn_save.setFont(fnt_btn);
 		btn_find.setFont(fnt_btn);
-		
+		btn_xy.setFont(fnt_btn);
+
 		la_IpNum.setBackground(w);
 		la_PtNum.setBackground(w);
 		
@@ -170,7 +215,7 @@ public class ServerFrame{
 		p_radio.add(rb_num);
 		p_radio.add(rb_roop);
 
-		p_radio.add(tf);
+		p_radio.add(tf_radio);
 		
 		p_xy.add(la_mouseX);
 		p_xy.add(la_mouseY);
@@ -195,6 +240,8 @@ public class ServerFrame{
 		
 		p_left.add(p_radio);
 		p_left.add(p_xy);
+		
+		p_left.add(ta_s);
 		//,확인용
 
 
@@ -347,8 +394,58 @@ public class ServerFrame{
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				runner.cmdInput(ta.getText(),"\n");
-				ta.setText(runner.check(RunnerCmd.ALL));
+				JPanel p = new JPanel();
+				p.setBackground(new Color(0,0,0,0));
+				p.addKeyListener(new KeyListener() {
+					
+					@Override
+					public void keyTyped(KeyEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public void keyReleased(KeyEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public void keyPressed(KeyEvent e) {
+						// TODO Auto-generated method stub
+						if(e.getKeyCode() == KeyEvent.VK_F1) {
+							Thread.currentThread();
+							JOptionPane.showMessageDialog(null,"정지 정지다");
+						}
+					}
+				});
+				
+				if(rb_one.isSelected()) {
+					runner.cmdInput(ta.getText(),"\n");
+					ta.setText(runner.check(RunnerCmd.ALL));
+					p.requestFocus();
+				}
+				else if(rb_num.isSelected()) {
+					for(int i=0;i<Integer.parseInt(tf_radio.getText());i++) {
+						runner.cmdInput(ta.getText(),"\n");
+						ta.setText(runner.check(RunnerCmd.ALL));
+						p.requestFocus();
+					}
+				}
+				else if(rb_roop.isSelected()) {
+					while(true) {runner.cmdInput(ta.getText(),"\n");
+					ta.setText(runner.check(RunnerCmd.ALL));
+					
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					p.requestFocus();
+					}
+				}
+				
 			}
 		});
 		//저장버튼 이벤트
@@ -490,11 +587,18 @@ public class ServerFrame{
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				JDialog d = new JDialog(f,"좌표구하기");
-				Label la = new Label("아무곳이나 클릭하세요");
+				JLabel la = new JLabel("아무곳이나 클릭하세요");
+				JPanel p = new JPanel();
+				la.setHorizontalAlignment(JLabel.CENTER);
 				//d.setPreferredSize(new Dimension(Toolkit.getDefaultToolkit().getScreenSize()));
 				
 				d.setSize(new Dimension(Toolkit.getDefaultToolkit().getScreenSize()));
 				d.add(la);
+				
+				d.setUndecorated(true);
+				d.setAlwaysOnTop(true);
+				d.setBackground(new Color(0,0,0,1));
+				
 				d.setResizable(false);
 				d.setLocationRelativeTo(null);
 				d.setVisible(true);
@@ -512,6 +616,7 @@ public class ServerFrame{
 						PointerInfo pt =MouseInfo.getPointerInfo();
 						la_mouseX.setText("X : "+ pt.getLocation().x);
 						la_mouseY.setText("Y : "+pt.getLocation().y);
+						printLog("좌표구함",ServerFrame.CLIENT);
 						d.dispose();
 					}
 					
@@ -536,6 +641,53 @@ public class ServerFrame{
 				
 			}
 		});
+		
+		
+		
+		tf_radio.addFocusListener(new FocusListener() {
+			
+			@Override
+			public void focusLost(FocusEvent e) {
+				// TODO Auto-generated method stub
+				String num =tf_radio.getText();
+				if(!num.equals("")) {
+					if(num.matches("^[0-9]*$")) {
+						if(Integer.parseInt(num)<=99) {}
+						else
+						{JOptionPane.showMessageDialog(null,"99이하의 숫자만 입력 가능합니다");
+						tf_radio.requestFocus();
+						}
+					}
+				
+					else
+					{
+					JOptionPane.showMessageDialog(null,"숫자만 입력 가능합니다");
+					tf_radio.requestFocus();
+					}
+				}
+				btn_list.setEnabled(true);
+				btn_run.setEnabled(true);
+				btn_re.setEnabled(true);
+
+				btn_save.setEnabled(true);
+				btn_find.setEnabled(true);;
+				btn_xy.setEnabled(true);
+			}
+			
+			@Override
+			public void focusGained(FocusEvent e) {
+				// TODO Auto-generated method stub
+				//btn_exit.set
+				btn_list.setEnabled(false);
+				btn_run.setEnabled(false);
+				btn_re.setEnabled(false);
+				btn_save.setEnabled(false);
+				btn_find.setEnabled(false);;
+				btn_xy.setEnabled(false);
+
+			}
+		});
+		
 		
 		//키인식 버튼 이벤트
 		

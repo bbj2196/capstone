@@ -16,6 +16,7 @@ public class ServerRec implements Runnable{
 		this.socket = socket;
 		this.f=f;
 	}
+	RWFile rwf = new RWFile();
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
@@ -28,12 +29,20 @@ public class ServerRec implements Runnable{
 			String meg="";
 			int cnt=1;
 			
-			if(buffer == EXIT) {
+			//조건문(첫줄이 이와 같은경우)
+			if(buffer.equals(EXIT)) {
 				
 			}
+			else if(buffer.equals("STOP")) {}
+			else if(buffer.contentEquals("getlist")) {
+				ServerSend sender = new ServerSend(socket,rwf.getCmdList());
+				Thread ts = new Thread(sender);
+				ts.start();
+			}
+			//첫줄이 명령문이 아닌경우
 			else {
 				while((buffer=br.readLine()) !=null) {
-					if(buffer.equals("STOP")) {}
+					
 					meg = meg+ buffer;
 					cnt++;
 					}

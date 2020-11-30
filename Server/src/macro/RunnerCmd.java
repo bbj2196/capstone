@@ -23,6 +23,7 @@ public class RunnerCmd{
 			check();
 		}
 	}*/
+
 	
 	public RunnerCmd(String str) {
 		
@@ -319,8 +320,10 @@ public class RunnerCmd{
 	}
 
 	public void action(String[] str_cmd,Robot r){ //명령은 받으면 해석해 동작하는 함수
-		Thread t1 = new Thread(new ActionCmd(str_cmd,r));
-		t1.start();
+		ActionCmd act = new ActionCmd(str_cmd,r);
+		act.run();
+		//th.
+		//t1.start();
 	}
 	
 	public int getVKcode(String str) {	//string을 vk값로 바꿔주는 함수
@@ -331,7 +334,7 @@ public class RunnerCmd{
 		vkcode = Integer.parseInt(code[findIndex(code,"VK_"+str)+1]);
 		return vkcode;
 	}
-	public int  findIndex(String[] arr,String str) {
+	public int  findIndex(String[] arr,String str) {//배열안에 값이 있다면 인덱스 리턴
 		for(int i=0;i<arr.length;i++) {
 			if(arr[i].equals(str)) {return i;}
 			

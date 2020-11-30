@@ -11,6 +11,8 @@ import java.util.Arrays;
 public class ActionCmd implements Runnable{
 String[] str_cmd;
 Robot r;
+
+
 @Override
 public void run(){
 	//첫 단어가 키보드일 경우
@@ -24,6 +26,8 @@ public void run(){
 					r.keyRelease(getVKcode(str_cmd[str_cmd.length-1]));
 					break;
 					default:
+						Exception e = new Exception(); 
+						
 						System.out.println("두번째 구문 오류_key ");
 						System.out.println(Arrays.toString(str_cmd));
 						
